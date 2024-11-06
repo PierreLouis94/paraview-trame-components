@@ -110,7 +110,7 @@ class Viewer:
                                         icon="mdi-crop-free",
                                         click=view_html.reset_camera,
                                         classes="position-absolute",
-                                        style="top: 1rem;right: 1rem; z-index: 1;",
+                                        style="bottom: 1rem;right: 1rem; z-index: 1;",
                                         variant="outlined",
                                         size="small",
                                     )
@@ -147,7 +147,7 @@ class Viewer:
                                 icon="mdi-crop-free",
                                 click=view_html.reset_camera,
                                 classes="position-absolute",
-                                style="top: 1rem;right: 1rem; z-index: 1;",
+                                style="bottom: 1rem;right: 1rem; z-index: 1;",
                                 variant="outlined",
                                 size="small",
                             )
@@ -157,6 +157,25 @@ class Viewer:
                             self.ctrl.on_data_loaded.add(view_html.reset_camera)
                             self.html_views.append(view_html)
                             self.proxy_views.append(view)
+            
+            # Add toggle button
+            v3.VBtn(
+                "Toggle Views",
+                click=self.toggle_views,
+                classes="position-absolute",
+                style="bottom: 1rem; left: 1rem; z-index: 1;",
+                variant="outlined",
+                size="small",
+            )
+    def toggle_views(self):
+        if len(self.views) == 1:
+            # Add a second view
+            view = simple.CreateRenderView()
+            self.views.append(view)
+        else:
+            # Remove the second view
+            self.views = self.views[:1]
+        self._build_ui()
 
     @controller.add("on_data_change")
     def update(self):

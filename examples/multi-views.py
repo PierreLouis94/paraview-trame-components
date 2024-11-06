@@ -1,6 +1,7 @@
 import paraview.web.venv
 from paraview import simple
 from ptc import Viewer, PipelineBrowser
+import ptc
 
 cone = simple.Cone()
 sphere = simple.Sphere()
@@ -28,9 +29,43 @@ for v in [v1, v2, v3]:
         update_representation(v, s)
 
 
+def hide_render_view(view):
+    for s in [cone, sphere, cube]:
+        r = simple.Show(s, view)
+        r.Visibility = 0
+
+
+# Hide v2
+hide_render_view(v2)
+
 web_app = Viewer(views=[[v1, v2], v3])
 
+# Initial view setup
+web_app.views = [[v1],v3]
+web_app._build_ui()
+
+# Function to toggle views
+def toggle_views():
+    if web_app.views == [[v1]]:
+        web_app.views = [[v1],v3]
+    elif web_app.views == [[v1],v3]:
+        web_app.views = [[v1]]
+    web_app._build_ui()
+    
+    
+
+# Add the button outside the view container to ensure it remains visible
+with web_app.side_top:
+    with ptc.VRow(classes="ptc-region align-center"):
+        ptc.VSpacer()
+        ptc.VBtn("Toggle Views", click=toggle_views)
+
+# Add other UI components
 with web_app.col_left:
     PipelineBrowser()
 
+
+
+
+# Start the web application
 web_app.start()
