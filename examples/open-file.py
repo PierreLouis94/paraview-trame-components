@@ -11,6 +11,7 @@ with web_app.ui:
     with web_app.col_center:
         ColorBy()
         TimeControl()
+        
 
     OpenFileDialog()
 
