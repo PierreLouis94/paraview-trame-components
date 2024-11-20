@@ -109,6 +109,9 @@ with web_app.ui:
         ptc.VSpacer()
         ptc.VSpacer()
         ptc.VSpacer()
+        ptc.VSpacer()
+        ptc.PalettePicker("WhiteBackground")
+        ptc.VSpacer()
 
     with web_app.side_top:
         with ptc.VRow(classes="ptc-region top-left"):
@@ -119,8 +122,6 @@ with web_app.ui:
                 classes="mx-2",
                 style="z-index: 1",
             )
-
-            
              #Add the toggle button to the UI
             #ptc.VBtn(
             #    icon="mdi-view-dashboard",
@@ -128,8 +129,6 @@ with web_app.ui:
             #    classes="mx-2",
             #    style="z-index: 1",
             #)
-            
-
             # Add the freeze/unfreeze button to the UI
             ptc.VBtn(
                 icon=("views_frozen ? 'mdi-lock' : 'mdi-lock-open'",),

@@ -46,13 +46,17 @@ web_app._build_ui()
 
 # Function to toggle views
 def toggle_views():
+    print("Toggle views called")
+    print(f"Current views: {web_app.views}")
     if web_app.views == [[v1]]:
-        web_app.views = [[v1],v3]
-    elif web_app.views == [[v1],v3]:
+        web_app.views = [[v1], v3]
+        print("Switching to views: [[v1], v3]")
+    elif web_app.views == [[v1], v3]:
         web_app.views = [[v1]]
-    web_app._build_ui()
-    
-    
+        print("Switching to views: [[v1]]")
+    print(f"Updated views: {web_app.views}")
+    web_app.update()
+    print("web_app.update() called")
 
 # Add the button outside the view container to ensure it remains visible
 with web_app.side_top:
@@ -63,9 +67,6 @@ with web_app.side_top:
 # Add other UI components
 with web_app.col_left:
     PipelineBrowser()
-
-
-
 
 # Start the web application
 web_app.start()

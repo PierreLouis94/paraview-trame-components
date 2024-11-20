@@ -69,98 +69,62 @@ class Viewer:
             if self.server.controller.on_active_view_change.exists():
                 self.server.controller.on_active_view_change()
 
+    @change("first_view_full_size")
+    def _update_view_sizes(self, first_view_full_size, **_):
+        for i, view_html in enumerate(self.html_views):
+            if i == 0:
+                size_class = "flex-grow-1 flex-shrink-1" if first_view_full_size else "flex-grow-1 flex-shrink-1 w-50"
+            else:
+                size_class = "d-none" if first_view_full_size else "flex-grow-1 flex-shrink-1 w-50"
+            if view_html.parent:
+                view_html.parent.classes = size_class
+                print(f"View {i}: size_class updated to {size_class}")
+            else:
+                print(f"View {i}: parent is None")
+        self.ui.flush_content()
+        print("flush_content called after size class update")
+
     def _build_ui(self):
-        self.state.active_view_id = 1
+        self.state.active_view_id = 0
         self.state.remote_view_mouse = None
         self.state.html_view_space = None
         self.state.client_only("html_view_space")
-        with VAppLayout(
-            self.server, template_name=self.template_name, full_height=True
-        ) as layout:
+        self.state.first_view_full_size = True
+
+        with VAppLayout(self.server, template_name=self.template_name, full_height=True) as layout:
             self.ui = layout
             with html.Div(classes="d-flex align-stretch fill-height"):
-                for view in self.views:
-                    if isinstance(view, list | tuple):
-                        with html.Div(
-                            classes="d-flex align-stretch fill-height flex-column flex-grow-1 flex-shrink-1"
-                        ):
-                            for v in view:
-                                view_id = len(self.html_views)
-                                with html.Div(
-                                    classes="flex-grow-1 flex-shrink-1 border-thin position-relative",
-                                    style=(
-                                        f"{{ overflow: 'hidden', zIndex: 0, padding: '1px', margin: '1px', outline: active_view_id === {view_id} ? 'solid 1.5px blue' : 'none' }}",
-                                    ),
-                                    click=f"active_view_id = {view_id}",
-                                ):
-                                    view_html = pv_widgets.VtkRemoteView(
-                                        v,
-                                        interactive_ratio=1,
-                                        enable_picking=("enable_picking", False),
-                                        style="z-index: -1;",
-                                        interactor_events=(
-                                            "remote_view_events",
-                                            ["EndAnimation", "MouseMove"],
-                                        ),
-                                        MouseMove="remote_view_mouse = $event.position",
-                                        mouse_enter="html_view_space = $event.target.getBoundingClientRect()",
-                                        __events=[("mouse_enter", "mouseenter")],
-                                    )
-                                    v3.VBtn(
-                                        icon="mdi-crop-free",
-                                        click=view_html.reset_camera,
-                                        classes="position-absolute",
-                                        style="bottom: 1rem !important; right: 1rem !important; top: unset !important; z-index: 1;",
-                                        variant="outlined",
-                                        size="small",
-                                    )
-                                    self.ctrl.on_data_loaded.add(view_html.reset_camera)
-                                    self.ctrl.view_update.add(view_html.update)
-                                    self.ctrl.view_reset_camera.add(
-                                        view_html.reset_camera
-                                    )
-                                    self.html_views.append(view_html)
-                                    self.proxy_views.append(v)
-                    else:
-                        view_id = len(self.html_views)
-                        with html.Div(
-                            classes="flex-grow-1 flex-shrink-1 border-thin position-relative",
-                            style=(
-                                f"{{ overflow: 'hidden', zIndex: 0, padding: '1px', margin: '1px', outline: active_view_id === {view_id} ? 'solid 1.5px blue' : 'none' }}",
-                            ),
-                            click=f"active_view_id = {view_id}",
-                        ):
-                            view_html = pv_widgets.VtkRemoteView(
-                                view,
-                                interactive_ratio=1,
-                                enable_picking=("enable_picking", False),
-                                style="z-index: -1;",
-                                interactor_events=(
-                                    "remote_view_events",
-                                    ["EndAnimation", "MouseMove"],
-                                ),
-                                MouseMove="remote_view_mouse = $event.position",
-                                mouse_enter="html_view_space = $event.target.getBoundingClientRect()",
-                                __events=[("mouse_enter", "mouseenter")],
-                            )
-                            v3.VBtn(
-                                icon="mdi-crop-free",
-                                click=view_html.reset_camera,
-                                classes="position-absolute",
-                                style="bottom: 1rem !important; right: 1rem !important; top: unset !important; z-index: 1;",
-                                variant="outlined",
-                                size="small",
-                            )
-
-                            self.ctrl.view_update.add(view_html.update)
-                            self.ctrl.view_reset_camera.add(view_html.reset_camera)
-                            self.ctrl.on_data_loaded.add(view_html.reset_camera)
-                            self.html_views.append(view_html)
-                            self.proxy_views.append(view)
+                v3.VBtn(
+                    icon="mdi-view-grid",
+                    click="first_view_full_size = !first_view_full_size",
+                    classes="position-absolute",
+                    style="bottom: 1rem !important; left: 1rem !important; top: unset !important; z-index: 1;",
+                    variant="outlined",
+                    size="small",
+                )
+                print("Button added to toggle view size")
+                for i, view in enumerate(self.views):
+                    view_id = len(self.html_views)
+                    size_class = "flex-grow-1 flex-shrink-1" if (i == 0 and self.state.first_view_full_size) else ("flex-grow-1 flex-shrink-1 w-50" if not self.state.first_view_full_size else "d-none")
+                    print(f"View {i}: size_class = {size_class}")
+                    with html.Div(classes=f"{size_class} border-thin position-relative",
+                                  style=(f"{{ overflow: 'hidden', zIndex: 0, padding: '1px', margin: '1px', outline: active_view_id === {view_id} ? 'solid 1.5px blue' : 'none' }}",),
+                                  click=f"active_view_id = {view_id}") as parent_div:
+                        view_html = pv_widgets.VtkRemoteView(view, interactive_ratio=1, enable_picking=("enable_picking", False), style="z-index: -1;", interactor_events=("remote_view_events", ["EndAnimation", "MouseMove"]), MouseMove="remote_view_mouse = $event.position", mouse_enter="html_view_space = $event.target.getBoundingClientRect()", __events=[("mouse_enter", "mouseenter")])
+                        v3.VBtn(icon="mdi-crop-free", click=view_html.reset_camera, classes="position-absolute", style="bottom: 1rem !important; right: 1rem !important; top: unset !important; z-index: 1;", variant="outlined", size="small")
+                        self.ctrl.view_update.add(view_html.update)
+                        self.ctrl.view_reset_camera.add(view_html.reset_camera)
+                        self.ctrl.on_data_loaded.add(view_html.reset_camera)
+                        view_html.parent = parent_div  # Ensure the parent is assigned
+                        self.html_views.append(view_html)
+                        self.proxy_views.append(view)
+                        print(f"View {i} added with view_id {view_id}")
 
     @controller.add("on_data_change")
     def update(self):
+        print("update method called")
         self.ctrl.view_update()
+        print("view_update called")
 
     @controller.set("enable_selection")
     def enable_selection(self, selection=True):
